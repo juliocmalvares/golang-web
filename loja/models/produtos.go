@@ -8,7 +8,7 @@ type Produto struct {
 	id              int
 	Nome, Descricao string
 	Preco           float64
-	Qtd             int32
+	Qtd             int
 }
 
 func FindAllProducts() []Produto {
@@ -28,10 +28,21 @@ func FindAllProducts() []Produto {
 		if err != nil {
 			panic(err.Error())
 		}
-		produtos = append(produtos, Produto{id, nome, descricao, preco, int32(quantidade)})
+		produtos = append(produtos, Produto{id, nome, descricao, preco, int(quantidade)})
 
 	}
 	defer db.Close()
 
 	return produtos
+}
+
+func InsertProduct(p Produto) {
+	db := db.ConectaBanco()
+	ins, err := db.Prepare("insert into produtos(nome, descricao, preco, quantidade) values ($1, $2, $3, $4)")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	ins.Exec(p.Nome, p.Descricao, p.Preco, p.Qtd)
+	defer db.Close()
 }
