@@ -13,7 +13,7 @@ type Produto struct {
 
 func FindAllProducts() []Produto {
 	db := db.ConectaBanco()
-	_select, err := db.Query("select * from produtos;")
+	_select, err := db.Query("select * from produtos order by id asc")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -54,5 +54,42 @@ func DeleteProduct(id string) {
 		panic(err.Error())
 	}
 	del.Exec(id)
+	defer db.Close()
+}
+
+func ProductToPut(id string) Produto {
+	db := db.ConectaBanco()
+	pr, err := db.Query("select * from produtos as p where p.id = $1", id)
+	if err != nil {
+		panic(err.Error())
+	}
+	produto := Produto{}
+	for pr.Next() {
+		var id, quantidade int
+		var nome, descricao string
+		var preco float64
+
+		err = pr.Scan(&id, &nome, &descricao, &preco, &quantidade)
+		if err != nil {
+			panic(err.Error())
+		}
+		produto.Nome = nome
+		produto.Id = id
+		produto.Descricao = descricao
+		produto.Preco = preco
+		produto.Qtd = quantidade
+	}
+	defer db.Close()
+	return produto
+}
+
+func PutProduct(p Produto) {
+	db := db.ConectaBanco()
+	_sql, err := db.Prepare("update produtos set nome=$1, descricao=$2, preco=$3, quantidade=$4 where id = $5")
+	if err != nil {
+		panic(err.Error())
+	}
+	_sql.Exec(p.Nome, p.Descricao, p.Preco, p.Qtd, p.Id)
+
 	defer db.Close()
 }
