@@ -5,7 +5,7 @@ import (
 )
 
 type Produto struct {
-	id              int
+	Id              int
 	Nome, Descricao string
 	Preco           float64
 	Qtd             int
@@ -44,5 +44,15 @@ func InsertProduct(p Produto) {
 	}
 
 	ins.Exec(p.Nome, p.Descricao, p.Preco, p.Qtd)
+	defer db.Close()
+}
+
+func DeleteProduct(id string) {
+	db := db.ConectaBanco()
+	del, err := db.Prepare("delete from produtos as p where p.id = $1")
+	if err != nil {
+		panic(err.Error())
+	}
+	del.Exec(id)
 	defer db.Close()
 }
